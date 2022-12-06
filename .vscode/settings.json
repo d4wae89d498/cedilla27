@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "*.h": "c"
+        "*.h": "c",
+        "list": "c",
+        "*.tcc": "c",
+        "istream": "c"
     }
 }

@@ -5,68 +5,67 @@ void	load_ext(int ac, char **av, char *path)
 	void	*handle = dlopen(path, RTLD_NOW);
 	if (!handle)
 	{
-		printf ("ext not found : %s\n", path);
+		print ("ext not found : %s\n", path);
 	}
 	on_load_ext_t *f = dlsym(handle, "on_load_ext");
-	if (f)
+	if (!f)
 	{
-		printf ("missing register_ext function for ext : %s\n", path);
+		print ("missing register_ext function for ext : %s\n", path);
 	}
 	f(ac, av, &parsers, &macros, &compilers);
 }
 
-bool is_var(char *str, char *prefix, char **compiler)
+
+
+char		*preprocess(const char *src)
 {
-    size_t prefix_len = strlen(prefix);
-	bool r = (!strncmp(str, prefix, prefix_len) && str[prefix_len] == '=');
-	if (r) {
-		*compiler = str + prefix_len + 1;
-		return true;
+	print("Preprocessing...\n");
+
+	char	*new_src;
+
+	while (*src)
+	{
+		new_src = try_apply_patterns(src);
+		if (new_src)
+			src = new_src;
+		else 
+			src += 1;
 	}
-	return false;
+
+	return 0;
 }
 
-bool is_flag(char *str, char *prefix)
+ast_node	*parse_node(const char *src)
 {
-	size_t prefix_len = strlen(prefix);
-    return (!strncmp(str, prefix, prefix_len) && (!str[prefix_len] || isspace(str[prefix_len])));
+	parser_list *pl = parsers;
+	ast_node *o;
+
+	while (pl)
+	{
+		o = pl->data(src);
+		if (o)
+			return o;	
+		pl = pl->next;
+	
+	return 0;
 }
 
-char	*read_file(char *path)
-{
-	int     fd;
-	size_t  fsize;
-	char	*src;
-	ssize_t	bytes;
-	char	*ret;
 
-	fd = open(path, O_RDONLY);
-	if (fd < 0)
+ast_node_list	
+			*parse_nodes(const char *src)
+{
+	ast_node_list	*o;
+
+	while (src)
 	{
-		printf("ERROR: open=%i for %s\n", errno, path);
-		return 0;
+		// if node found, also increment src 
+		src += 1;
 	}
-	fsize = lseek(fd, 0, SEEK_END);
-	lseek(fd, 0, SEEK_SET);
-	src = malloc(fsize + 1);
-	if (!src)
-	{
-		close(fd);
-		return 0;
-	}
-	src[fsize] = 0;
-	fsize = 0;
-	while((bytes = read(fd, src + fsize++, 1)))
-		;
-	if (bytes != 0)
-	{
-		printf("ERROR: read=%i for %s\n", errno, path);
-		free(src);
-		close(fd);
-		return 0;
-	}
-	close(fd);
-	return src;
+}
+
+char		*compile(ast_node_list *nodes)
+{
+
 }
 
 /*
@@ -80,13 +79,13 @@ char	*read_file(char *path)
 int main(int ac, char **av)
 {
     bool    do_compile = true;
-    char    *exts;
-    char    *source;
+    char    *exts = 0;
+    char    *source = 0;
     ull     aci;
 
-    if (ac < 3)
+    if (ac < 4)
     {
-        printf("Usage: %s [-E | --COMPILER=... | -PREPROCESSORS=...] <source_file>\n", av[0]);
+        print("Usage: %s  [-E] --EXTS=\"...\" <source_file>\n", av[0]);
         return 0;
     }
     aci = 1;
@@ -97,21 +96,31 @@ int main(int ac, char **av)
 		else if (is_var(av[aci], "--EXTS", &exts))
 			;
 		else if (!source)
-		{
 			source = av[aci];
-		}
 		else 
-			return !!printf("error, only one source argument shall be written\n");
+			return !!print("error, only one source argument shall be written\n");
         aci += 1;
     }
+	if (!exts)
+		return !!print("error, --EXTS flags is missing\n");
 
+	print("-----------------------------\n");
+	print("cedilla compiler 0.0\n");
+	print("-----------------------------\n");
+	print("do_compile :\t%i\n", do_compile);
+	print("extensons :\t%s\n", exts);
+	print("source :\t%s\n", source);
+	print("-----------------------------\n");
+    str_list *ext_list = 0;
 
-	printf("do_compile :\t%i\n", do_compile);
-	printf("exts :\t%s\n", exts);
-	printf("source :\t%s\n", source);
-	printf("\n");
-	printf("\n");
-	printf("Preprocessing...\n");
+    explode(exts, skip_space, &ext_list);
+
+	while (ext_list)
+	{
+		print("-- loading ext=[%s] ...\n", ext_list->data);
+		load_ext(ac, av, ext_list->data);
+		ext_list = ext_list->next;
+	}
 
 
 	// try link all preprocessors
@@ -122,7 +131,7 @@ int main(int ac, char **av)
 
 	if (do_compile)
 	{
-		printf("Compiling...\n");
+		
 	}
 	return 0;
 }
