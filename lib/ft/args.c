@@ -17,7 +17,6 @@ bool is_flag(char *str, char *prefix)
     return (!strncmp(str, prefix, prefix_len) && (!str[prefix_len] || isspace(str[prefix_len])));
 }
 
-
 int skip_space(const char *s)
 {
     int i = 0;

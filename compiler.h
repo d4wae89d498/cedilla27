@@ -1,46 +1,35 @@
-#ifndef COMPILER_API_H
-# include "libft/ft.h"
+#ifndef COMPILER_H
+# define COMPILER_H
+# include "lib/ft/ft.h"
 
 typedef struct 
 {
-    ull     line;
-    ull     col;
-    void    *extension;
-}   compiler_ctx;
+    const char          *src;
+    char                *symbol;
+    void                *data;
+}                       ast_node;
 
-typedef struct 
-{
-    char    *symbol;
-    void    *data;
-}   ast_node;
+DEF_LIST_PROTO(ast_node*,     ast_node_list)
 
-DEF_LIST(ast_node*, ast_node_list)
+typedef ast_node        *parser             (const char *);
+typedef char            *preprocessor       (const char *);
+typedef char            *compiler           (ast_node_list *);
 
-typedef ast_node    *parser             (const char *src);
-typedef char        *macro              (const char *src, compiler_ctx *ctx);
-typedef char        *compiler           (ast_node_list *tree);
+DEF_LIST_PROTO(parser*,       parser_list)
+DEF_LIST_PROTO(preprocessor*, preprocessor_list)
+DEF_LIST_PROTO(compiler*,     compiler_list)
 
-DEF_LIST(parser*,   parser_list)
-DEF_LIST(macro*,    macro_list)
-DEF_LIST(compiler*, compiler_list)
+parser_list             *parsers;
+preprocessor_list       *preprocessors;
+compiler_list           *compilers;
 
-parser_list *parsers;
-macro_list  *macros;
-compiler_list
-            *compilers;
+parser                  parse;
+preprocessor            preprocess;
+compiler                compile;
 
-bool        is_flag(char *str, char *prefix);
-bool        is_var(char *str, char *prefix, char **value);
-char	    *read_file(char *path);
+ast_node_list           *parse_all(const char *);
 
-parser      parse_one;
-ast_node_list      
-            **parse(const char *src);
-macro       apply_macros;
-compiler    compile;
-
-typedef void
-            on_load_ext_t(int, char**, parser_list**, macro_list**, compiler_list**);
-void        load_ext(int, char**, char *path);
+typedef bool            on_load_ext_t(int, char**, parser_list**, preprocessor_list**, compiler_list**);
+bool                    load_ext(int, char**, char *path);
 
 #endif

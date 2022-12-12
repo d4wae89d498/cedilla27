@@ -1,31 +1,46 @@
 #include "compiler.h"
 
-void	load_ext(int ac, char **av, char *path)
+DEF_LIST(ast_node*,     ast_node_list)
+DEF_LIST(parser*,       parser_list)
+DEF_LIST(preprocessor*, preprocessor_list)
+DEF_LIST(compiler*,     compiler_list)
+
+/*
+ *	Returns biggest possible ast_node or 0
+ */
+ast_node *parse(const char *src)
 {
-	void	*handle = dlopen(path, RTLD_NOW);
-	if (!handle)
+	ast_node	*o = 0;
+	ast_node	*try_o;
+	parser_list	*pl;
+	size_t		match_len = 0;
+
+	pl = parsers;
+	while (pl)
 	{
-		print ("ext not found : %s\n", path);
+		try_o = pl->data(src);
+
+		if (!o || (strlen(o->src) >= match_len))
+		{
+			o = try_o;
+		}
+
+		pl = pl->next;
 	}
-	on_load_ext_t *f = dlsym(handle, "on_load_ext");
-	if (!f)
-	{
-		print ("missing register_ext function for ext : %s\n", path);
-	}
-	f(ac, av, &parsers, &macros, &compilers);
+	return o;	
 }
 
-
-
-char		*preprocess(const char *src)
+/*
+ *	Returns src by applying macros, will also apply macros in macros outputs
+ */ 
+char *preprocess(const char *src)
 {
-	print("Preprocessing...\n");
-
 	char	*new_src;
 
+	print("Preprocessing...\n");
 	while (*src)
 	{
-		new_src = try_apply_patterns(src);
+		new_src = 0;
 		if (new_src)
 			src = new_src;
 		else 
@@ -35,103 +50,38 @@ char		*preprocess(const char *src)
 	return 0;
 }
 
-ast_node	*parse_node(const char *src)
+/*
+ * Compile all nodes
+ */ 
+char *compile(ast_node_list *nodes)
 {
-	parser_list *pl = parsers;
-	ast_node *o;
-
-	while (pl)
-	{
-		o = pl->data(src);
-		if (o)
-			return o;	
-		pl = pl->next;
-	
 	return 0;
-}
-
-
-ast_node_list	
-			*parse_nodes(const char *src)
-{
-	ast_node_list	*o;
-
-	while (src)
-	{
-		// if node found, also increment src 
-		src += 1;
-	}
-}
-
-char		*compile(ast_node_list *nodes)
-{
-
 }
 
 /*
- *      FLAGS :
- *          
- *          -E
- *          --EXTS="ext/cpp ext/std"
- *              ext/std/cpp defines -D=value -I=./ flags
- *          <source_file>
+ * Returns an ast node list by parsing src. Returns 0 if something can't be parsed.
  */
-int main(int ac, char **av)
+ast_node_list *parse_all(const char *src)
 {
-    bool    do_compile = true;
-    char    *exts = 0;
-    char    *source = 0;
-    ull     aci;
+    return 0;
+}
 
-    if (ac < 4)
-    {
-        print("Usage: %s  [-E] --EXTS=\"...\" <source_file>\n", av[0]);
-        return 0;
-    }
-    aci = 1;
-    while (aci < ac)
-    {
-        if (is_flag(av[aci], "-E"))
-			do_compile = false;
-		else if (is_var(av[aci], "--EXTS", &exts))
-			;
-		else if (!source)
-			source = av[aci];
-		else 
-			return !!print("error, only one source argument shall be written\n");
-        aci += 1;
-    }
-	if (!exts)
-		return !!print("error, --EXTS flags is missing\n");
-
-	print("-----------------------------\n");
-	print("cedilla compiler 0.0\n");
-	print("-----------------------------\n");
-	print("do_compile :\t%i\n", do_compile);
-	print("extensons :\t%s\n", exts);
-	print("source :\t%s\n", source);
-	print("-----------------------------\n");
-    str_list *ext_list = 0;
-
-    explode(exts, skip_space, &ext_list);
-
-	while (ext_list)
+/*
+ * Try to load a compiler extension. Returns true on success, false on failure.
+ */
+bool load_ext(int ac, char **av, char *path)
+{
+	void	*handle = dlopen(path, RTLD_NOW);
+	if (!handle)
 	{
-		print("-- loading ext=[%s] ...\n", ext_list->data);
-		load_ext(ac, av, ext_list->data);
-		ext_list = ext_list->next;
+		print ("ext not found : %s\n", path);
+		return false;
 	}
-
-
-	// try link all preprocessors
-
-	// for each char ... transpile
-
-	// echo transpiled version if -E, else save it in an intermediate file
-
-	if (do_compile)
+	on_load_ext_t *f = dlsym(handle, "on_load_ext");
+	if (!f)
 	{
-		
+		print ("missing register_ext function for ext : %s\n", path);
+		return false;
 	}
-	return 0;
+	return f(ac, av, &parsers, &preprocessors, &compilers);
 }

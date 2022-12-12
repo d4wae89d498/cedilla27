@@ -1,6 +1,5 @@
 #include "ft.h"
 
-
 int main(void)
 {
     char *str = "   .  .      .  hello1   d    p .      ";

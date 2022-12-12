@@ -1,13 +1,21 @@
 #ifndef LIST_H
 # define LIST_H
 # include <stdlib.h>
-# define DEF_LIST(TYPE, NAME) 			\
+
+# define DEF_LIST_PROTO(TYPE, NAME)     \
+                                        \
 	typedef struct s_ ## NAME			\
 	{									\
 		TYPE				data;		\
 		struct s_ ## NAME	*next;		\
 	}  NAME;							\
-										\
+NAME    *NAME ## _last(NAME *l);		\
+NAME    *NAME ## _new(TYPE data);		\
+NAME    *NAME ## _add(NAME **l, TYPE data);\
+void    NAME ## _del(NAME **l, NAME *k, void(*value_destructor)(TYPE));\
+void    NAME ## _free(NAME *l, void(*value_destructor)(TYPE));
+
+# define DEF_LIST(TYPE, NAME) 			\
 										\
 NAME    *NAME ## _last(NAME *l)			\
 {										\

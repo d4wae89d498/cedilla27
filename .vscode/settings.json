@@ -3,6 +3,10 @@
         "*.h": "c",
         "list": "c",
         "*.tcc": "c",
-        "istream": "c"
+        "istream": "c",
+        "array": "c",
+        "string_view": "c",
+        "string": "c",
+        "vector": "c"
     }
 }
