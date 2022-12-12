@@ -26,13 +26,12 @@ char	*read_file(char *path)
 	fsize = 0;
 	while((bytes = read(fd, src + fsize++, 1)) >= 0)
 		;
+	close(fd);
 	if (bytes != 0)
 	{
 		print("ERROR: read=%i for %s\n", errno, path);
 		free(src);
-		close(fd);
 		return 0;
 	}
-	close(fd);
 	return src;
 }
