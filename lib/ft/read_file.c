@@ -24,7 +24,7 @@ char	*read_file(char *path)
 	}
 	src[fsize] = 0;
 	fsize = 0;
-	while((bytes = read(fd, src + fsize++, 1)) >= 0)
+	while((bytes = read(fd, src + fsize++, 1)) > 0)
 		;
 	close(fd);
 	if (bytes != 0)

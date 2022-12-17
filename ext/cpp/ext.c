@@ -11,8 +11,8 @@ char    *c_macro_hello(const char *src)
 {
 
     if (parse(src))
-        return;
-    return;
+        return 0;
+    return 0;
 }
 
 bool    on_load_ext(int ac, char** av, parser_list** parsers, preprocessor_list** macros, compiler_list** compilers)

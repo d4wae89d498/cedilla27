@@ -23,13 +23,18 @@ run-test: $(NAME)
 	make -C lib/ft 	 	run-test
 	make -C test 		run
 
+run:
+	make -C ext/cpp	
+
 clean:
 	make -C test 		clean
 	make -C lib/ft 		clean
+	make -C ext/cpp		clean	
 	rm -rf $(OBJS)
 
 fclean: clean
 	make -C lib/ft 		fclean
+	make -C ext/cpp		fclean	
 	rm -rf $(NAME)
 
 re: clean all
