@@ -1,7 +1,7 @@
 #ifndef COMPILER_H
 # define COMPILER_H
 # include "lib/ft/ft.h"
-
+# define MAX_COMPILER_DEPTH 128
 typedef struct 
 {
     const char          *src;
@@ -18,10 +18,15 @@ typedef char            *compiler           (ast_node_list *);
 DEF_LIST_PROTO(parser*,       parser_list)
 DEF_LIST_PROTO(preprocessor*, preprocessor_list)
 DEF_LIST_PROTO(compiler*,     compiler_list)
+DEF_LIST_PROTO(void*,         ext_list)
 
 parser_list             *parsers;
 preprocessor_list       *preprocessors;
 compiler_list           *compilers;
+ext_list                *exts;
+
+void                    compiler_init();
+void                    compiler_destroy();
 
 parser                  parse;
 preprocessor            preprocess;

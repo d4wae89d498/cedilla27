@@ -3,8 +3,11 @@
 #include "string.h"
 #include "assert.h"
 
-DEF_LIST(void*, list)
-DEF_LIST(int, int_list)
+DEF_LIST_PROTO(void*, list)
+DEF_LIST(void*, list, 0)
+
+DEF_LIST_PROTO(int, int_list)
+DEF_LIST(int, int_list, 0)
 
 int main()
 {
@@ -40,7 +43,7 @@ int main()
         i = i->next;
     }*/
 
-    list_free(l, 0);
+    list_free(l);
     l = 0;
 
     list *t = list_add(&l, strdup("113"));
@@ -48,7 +51,7 @@ int main()
     (void)k;
     list_add(&l, strdup("115"));
     
-    list_del(&l, t, free);
+    list_del(&l, t);
 
 
     assert(!strcmp(l->data, "114"));
@@ -61,7 +64,7 @@ int main()
         printf("v: %s\n", i->data);
         i = i->next;
     }*/
-    list_free(l, free);
+    list_free(l);
 
     printf("---------------\n");
     printf("LIBLIST.a   TESTS OK\n\n");

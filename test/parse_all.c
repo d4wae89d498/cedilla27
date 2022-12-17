@@ -27,27 +27,20 @@ ast_node    *parse_ab(const char *src)
     return 0;
 }
 
-int main(void)
+int main()
 {
     parser_list_add(&parsers, parse_42);
-    ast_node *test = parse("0");
-    assert(test == 0);
-
-    test = parse("42");
-    assert(test);
-    assert(!strcmp(test->symbol, "43"));
-    assert(test->data == (void*) 44);
-    assert(!strcmp(test->src, "42"));
-
-    test = parse("042");
-    assert(test == 0);
-
     parser_list_add(&parsers, parse_ab);
-    test = parse("ab");
-    assert(test);
-    assert(!strcmp(test->src, "ab"));
-    assert(!strcmp(test->symbol, "AB"));
-    assert(test->data = (void*)47);
+    
+    ast_node_list *list = parse_all("ab42ab");
+
+    assert(str_is_prefixed(list->data->src, "ab"));
+    assert(str_is_prefixed(list->next->data->src, "42"));
+    assert(str_is_prefixed(list->next->next->data->src, "ab")); 
+    assert(!(list->next->next->next)); 
+
+    assert(!parse_all("ab420ab"));
+
 
     return 0;
 }

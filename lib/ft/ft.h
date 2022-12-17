@@ -21,11 +21,12 @@
 	fprintf(stderr, __VA_ARGS__))										
 # define ull unsigned long long 
 # define ll long long
-
+# define strisp(STR, p) (!strncmp(str, p, strlen(str) ? strlen(str) : 0));
 DEF_LIST_PROTO(char*, str_list)
 
 extern int errno;
-
+int     str_is(const char *str, const char *str2);
+int     str_is_prefixed(const char *str, const char *prefix);
 char	*read_file(char *path);
 void    explode(const char *src, int (*is_sep)(const char *), str_list **output);
 bool    is_var(char *str, char *prefix, char **compiler);

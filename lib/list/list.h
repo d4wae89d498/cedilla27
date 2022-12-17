@@ -12,10 +12,10 @@
 NAME    *NAME ## _last(NAME *l);		\
 NAME    *NAME ## _new(TYPE data);		\
 NAME    *NAME ## _add(NAME **l, TYPE data);\
-void    NAME ## _del(NAME **l, NAME *k, void(*value_destructor)(TYPE));\
-void    NAME ## _free(NAME *l, void(*value_destructor)(TYPE));
+void    NAME ## _del(NAME **l, NAME *k);\
+void    NAME ## _free(NAME *l);
 
-# define DEF_LIST(TYPE, NAME) 			\
+# define DEF_LIST(TYPE, NAME, FREEF)	\
 										\
 NAME    *NAME ## _last(NAME *l)			\
 {										\
@@ -46,9 +46,9 @@ NAME    *NAME ## _add(NAME **l, TYPE data)\
     if (!last)							\
         return *l = NAME ## _new(data);	\
     return last->next = NAME ## _new(data);\
-}\
+}                                       \
 										\
-void   NAME ## _del(NAME **l, NAME *k, void(*value_destructor)(TYPE))\
+void   NAME ## _del(NAME **l, NAME *k)  \
 {										\
     NAME    *it;						\
     NAME    *swp;						\
@@ -61,8 +61,8 @@ void   NAME ## _del(NAME **l, NAME *k, void(*value_destructor)(TYPE))\
         swp = it->next;					\
         if (it == k)					\
         {								\
-            if (value_destructor)		\
-                value_destructor(it->data);\
+            if (FREEF)		            \
+                ((void(*)(void*))FREEF)((void*)(unsigned long long)it->data);\
             free(it);					\
             *prev = swp;				\
         }								\
@@ -72,7 +72,7 @@ void   NAME ## _del(NAME **l, NAME *k, void(*value_destructor)(TYPE))\
     }									\
 }										\
 										\
-void    NAME ## _free(NAME *l, void(*value_destructor)(TYPE))\
+void    NAME ## _free(NAME *l)          \
 {										\
     NAME    *it;						\
     NAME    *swp;						\
@@ -81,11 +81,11 @@ void    NAME ## _free(NAME *l, void(*value_destructor)(TYPE))\
     while (it)							\
     {									\
         swp = it->next;					\
-        if (value_destructor)			\
-            value_destructor(it->data);	\
+        if (FREEF)			            \
+                ((void(*)(void*))FREEF)((void*)(unsigned long long)it->data);\
         free(it);						\
         it = swp;						\
     }									\
-}										\
+}										
 
 #endif
