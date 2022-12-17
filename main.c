@@ -5,7 +5,7 @@ int	main(int ac, char **av)
     bool    do_compile = true;
     char    *exts = 0;
     char    *source_path = 0;
-    ull     aci;
+    int     aci;
 
 	
     if (ac < 3)
