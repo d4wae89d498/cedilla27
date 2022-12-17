@@ -1,11 +1,12 @@
 #include "ft.h"
 
 // TODO : make me more serious
-void explode(const char *src, int (*is_sep)(const char *), str_list **output)
+str_list *explode(const char *src, int (*is_sep)(const char *))
 {
     const char *a;
     char *s;
     int r = 0;
+    str_list    *output = 0;
 
     a = src;
     while (*src)
@@ -17,7 +18,7 @@ void explode(const char *src, int (*is_sep)(const char *), str_list **output)
             {
                 s = strdup(a);
                 s[src - a] = 0;
-                str_list_add(output, s);
+                str_list_add(&output, s);
             }
             src += r;
             a = src;
@@ -29,6 +30,7 @@ void explode(const char *src, int (*is_sep)(const char *), str_list **output)
     {
         s = strdup(a);
         s[src - a] = 0;
-        str_list_add(output, s);
+        str_list_add(&output, s);
     }
+    return output;
 }

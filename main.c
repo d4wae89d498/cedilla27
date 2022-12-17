@@ -7,6 +7,7 @@ int	main(int ac, char **av)
     char    *source = 0;
     ull     aci;
 
+	
     if (ac < 4)
     {
         print("Usage: %s  [-E] --EXTS=\"...\" <source_file>\n", av[0]);
@@ -27,6 +28,7 @@ int	main(int ac, char **av)
     }
 	if (!exts)
 		return !!print("error, --EXTS flags is missing\n");
+	atexit(compiler_destroy);
 	print("-----------------------------\n");
 	print("cedilla compiler 0.0\n");
 	print("-----------------------------\n");
@@ -34,14 +36,14 @@ int	main(int ac, char **av)
 	print("extensons :\t%s\n", exts);
 	print("source :\t%s\n", source);
 	print("-----------------------------\n");
-    str_list *ext_list = 0;
-    explode(exts, skip_space, &ext_list);
+    str_list *ext_list = explode(exts, skip_space);
 	while (ext_list)
 	{
 		print("-- loading ext=[%s] ...\n", ext_list->data);
 		load_ext(ac, av, ext_list->data);
 		ext_list = ext_list->next;
 	}
+	str_list_free(ext_list);
 	if (do_compile)
 	{
 	}

@@ -28,7 +28,7 @@ extern int errno;
 int     str_is(const char *str, const char *str2);
 int     str_is_prefixed(const char *str, const char *prefix);
 char	*read_file(char *path);
-void    explode(const char *src, int (*is_sep)(const char *), str_list **output);
+str_list *explode(const char *src, int (*is_sep)(const char *));
 bool    is_var(char *str, char *prefix, char **compiler);
 bool    is_flag(char *str, char *prefix);
 int     skip_space(const char *s);

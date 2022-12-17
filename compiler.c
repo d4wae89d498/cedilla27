@@ -4,7 +4,7 @@ DEF_LIST(ast_node*,     ast_node_list,		free)
 DEF_LIST(parser*,       parser_list, 		0)
 DEF_LIST(preprocessor*, preprocessor_list, 	0)
 DEF_LIST(compiler*,     compiler_list, 		0)
-DEF_LIST(void*,     ext_list, 				dlclose)
+DEF_LIST(void*,     	ext_list, 			dlclose)
 
 /*
  *	Returns biggest possible ast_node or 0
@@ -72,6 +72,24 @@ char *preprocess(const char *src)
  */ 
 char *compile(ast_node_list *nodes)
 {
+	size_t		max_item;
+	char		*s;
+	str_list	*sl = 0;
+	while (nodes)
+	{
+		compiler_list	*cl = compilers;	
+		while (cl)
+		{
+			s = cl->data(nodes->data);	
+			if (s)
+			{
+				return s;
+			}
+			cl = cl->next;
+		}
+
+		nodes = nodes->next;
+	}
 	return 0;
 }
 
@@ -114,13 +132,13 @@ bool load_ext(int ac, char **av, char *path)
 	on_load_ext_t *f = dlsym(handle, "on_load_ext");
 	if (!f)
 	{
+		dlclose(handle);
 		print ("missing register_ext function for ext : %s\n", path);
 		return false;
 	}
 	ext_list_add(&exts, handle);
 	return f(ac, av, &parsers, &preprocessors, &compilers);
 }
-
 
 void	compiler_init()
 {

@@ -7,7 +7,7 @@ int main(void)
     str_list *items;
     str_list * items_head;
     items_head = items;
-    explode(str, skip_space, &items);
+    items = explode(str, skip_space);
     items_head = items;
     while (items)
     {
