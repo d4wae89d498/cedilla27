@@ -101,13 +101,16 @@ ast_node_list *parse_all(compiler_ctx *ctx, const char *src)
 		ast_node		*n = parse(ctx, src);
 		if (!n)
 		{
-			print ("Parse error.");
+			print ("Parse error in file %s:%llu:%llu\n", ctx->get_current_file(ctx), ctx->get_current_line(ctx), ctx->get_current_column(ctx));
 			return 0;
 		}
 		ast_node_list_add(&o, n);
-		src = 0;
-		continue ;
-		src += 1;
+		char *last_space = strchr(n->src, '\n');
+		if (last_space)
+			ctx->set_current_column(last_space - n->src);
+		else 
+			ctx->set_current_column(ctx->get_current_column(ctx) + strlen(n->src));
+		src += strlen(n->src);
 	}
     return o;
 }
@@ -149,7 +152,8 @@ void	compiler_init(compiler_ctx *ctx)
     	.source_path = 0,
     	.get_current_line = 0,
     	.get_current_column = 0,               
-    	.get_current_file = 0
+    	.get_current_file = 0,
+		.set_current_column = 0
 	};
 }
 
