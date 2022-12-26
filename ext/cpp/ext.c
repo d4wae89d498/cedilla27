@@ -15,7 +15,6 @@ static char    *c_preprocess_cpp_file(compiler_ctx *ctx, const char **src)
     if (str_is_prefixed(*src, FILE_MACRO_TEXT))
     {
         *src += strlen(FILE_MACRO_TEXT);
-        // how to incr ?? preprocessor(**) ??
         return strdup(current_file);
     }
     return 0;
@@ -105,6 +104,11 @@ static ull     impl_get_current_column()
     return current_column; 
 }
 
+static void   impl_set_current_column(ull column)
+{
+    current_column = column; 
+}
+
 //////////
 
 bool    on_load_ext(    
@@ -114,7 +118,8 @@ bool    on_load_ext(
 {
 
     ctx->get_current_file = impl_get_current_file;
-    
+    ctx->set_current_column = impl_set_current_column;
+
     current_file = ctx->source_path; 
 
     parser_list_add(&(ctx->parsers), c_parse_cpp_line);
