@@ -50,7 +50,9 @@ int main()
     list *k = list_add(&l, strdup("114"));
     (void)k;
     list_add(&l, strdup("115"));
-    
+
+    assert(l->next->prev == l);
+
     list_del(&l, t);
 
 

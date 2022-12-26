@@ -8,6 +8,7 @@
 	{									\
 		TYPE				data;		\
 		struct s_ ## NAME	*next;		\
+		struct s_ ## NAME	*prev;		\
 	}  NAME;							\
 NAME    *NAME ## _last(NAME *l);		\
 NAME    *NAME ## _new(TYPE data);		\
@@ -35,17 +36,34 @@ NAME    *NAME ## _new(TYPE data)		\
     o = malloc(sizeof(NAME));			\
     o->data = data;						\
     o->next = 0;						\
+    o->prev = 0;                        \
     return o;							\
 }										\
 										\
 NAME    *NAME ## _add(NAME **l, TYPE data)\
 {										\
     NAME *last;							\
-										\
-    last = NAME ## _last(*l);			\
+    NAME *prev;							\
+                                        \
+    prev = 0;                           \
+    last = *l;							\
+    while (last)						\
+    {									\
+        if (!last->next)				\
+            break ;                     \
+        prev = last;                    \
+        last = last->next;				\
+    }	                                \
     if (!last)							\
+    {                                   \
         return *l = NAME ## _new(data);	\
-    return last->next = NAME ## _new(data);\
+    }                                   \
+                                        \
+    last->next = NAME ## _new(data);    \
+    last->prev = prev;                  \
+                                        \
+    return last->next;                  \
+                                        \
 }                                       \
 										\
 void   NAME ## _del(NAME **l, NAME *k)  \

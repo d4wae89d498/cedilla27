@@ -1,7 +1,7 @@
 #include "../compiler.h"
 #include "assert.h"
 
-ast_node    *parse_42(const char *src)
+ast_node    *parse_42(compiler_ctx *ctx, const char *src)
 {
     if (!strncmp(src, "42", 2))
     {
@@ -14,7 +14,7 @@ ast_node    *parse_42(const char *src)
     return 0;
 }
 
-ast_node    *parse_ab(const char *src)
+ast_node    *parse_ab(compiler_ctx *ctx, const char *src)
 {
     if (!strncmp(src, "ab", 2))
     {
@@ -29,21 +29,24 @@ ast_node    *parse_ab(const char *src)
 
 int main(void)
 {
-    parser_list_add(&parsers, parse_42);
-    ast_node *test = parse("0");
+    compiler_ctx ctx;
+    compiler_init(&ctx);
+
+    parser_list_add(&(ctx.parsers), parse_42);
+    ast_node *test = parse(&ctx, "0");
     assert(test == 0);
 
-    test = parse("42");
+    test = parse(&ctx, "42");
     assert(test);
     assert(!strcmp(test->symbol, "43"));
     assert(test->data == (void*) 44);
     assert(!strcmp(test->src, "42"));
 
-    test = parse("042");
+    test = parse(&ctx, "042");
     assert(test == 0);
 
-    parser_list_add(&parsers, parse_ab);
-    test = parse("ab");
+    parser_list_add(&(ctx.parsers), parse_ab);
+    test = parse(&ctx, "ab");
     assert(test);
     assert(!strcmp(test->src, "ab"));
     assert(!strcmp(test->symbol, "AB"));

@@ -1,0 +1,2 @@
+make -C ../../ re && make -C . re && ./../../compiler -E --EXTS="ext.so" test/file.c > test/file_tmp.c && cc ../../lib/ft/libft.a test/file_tmp.c &&  ./a.out
+#./../../compiler -E --EXTS="ext.so" test/define.c 

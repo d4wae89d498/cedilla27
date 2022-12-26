@@ -1,7 +1,7 @@
 #include "../compiler.h"
 #include "assert.h"
 
-ast_node    *parse_42(const char *src)
+ast_node    *parse_42(compiler_ctx *ctx, const char *src)
 {
     if (!strncmp(src, "42", 2))
     {
@@ -14,7 +14,7 @@ ast_node    *parse_42(const char *src)
     return 0;
 }
 
-ast_node    *parse_ab(const char *src)
+ast_node    *parse_ab(compiler_ctx *ctx, const char *src)
 {
     if (!strncmp(src, "ab", 2))
     {
@@ -29,17 +29,20 @@ ast_node    *parse_ab(const char *src)
 
 int main()
 {
-    parser_list_add(&parsers, parse_42);
-    parser_list_add(&parsers, parse_ab);
+    compiler_ctx ctx;
+    compiler_init(&ctx);
+
+    parser_list_add(&(ctx.parsers), parse_42);
+    parser_list_add(&(ctx.parsers), parse_ab);
     
-    ast_node_list *list = parse_all("ab42ab");
+    ast_node_list *list = parse_all(&ctx, "ab42ab");
 
     assert(str_is(list->data->src, "ab"));
     assert(str_is(list->next->data->src, "42"));
     assert(str_is(list->next->next->data->src, "ab")); 
     assert(!(list->next->next->next)); 
 
-    assert(!parse_all("ab420ab"));
+    assert(!parse_all(&ctx, "ab420ab"));
 
 
     return 0;

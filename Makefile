@@ -1,7 +1,7 @@
 NAME		= compiler
 SRCS 		= compiler.c 
 OBJS 		= $(SRCS:.c=.o)
-CFLAGS		= -g
+CFLAGS		= -g -fsanitize=address
 .PHONY:		all clean fclean test run-test
 .SUFIXES:	
 

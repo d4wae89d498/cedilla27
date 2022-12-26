@@ -12,27 +12,41 @@ typedef struct
 
 DEF_LIST_PROTO(ast_node*,     ast_node_list)
 
-typedef ast_node        *parser             (const char *);
-typedef char            *preprocessor       (const char *);
-typedef char            *compiler           (ast_node *);
+typedef struct s_compiler_ctx compiler_ctx;
+
+typedef ast_node        *parser                 (compiler_ctx *, const char *);
+typedef char            *preprocessor           (compiler_ctx *, const char **);
+typedef char            *compiler               (compiler_ctx *, ast_node *);
+typedef ull             current_line_getter     ();
+typedef ull             current_column_getter   ();
+typedef char            *current_file_getter    ();
 
 DEF_LIST_PROTO(parser*,       parser_list)
 DEF_LIST_PROTO(preprocessor*, preprocessor_list)
 DEF_LIST_PROTO(compiler*,     compiler_list)
 DEF_LIST_PROTO(void*,         ext_list)
 
-parser_list             *parsers;
-preprocessor_list       *preprocessors;
-compiler_list           *compilers;
-ext_list                *exts;
+typedef struct s_compiler_ctx {
+    parser_list             *parsers;
+    preprocessor_list       *preprocessors;
+    compiler_list           *compilers;
+    ext_list                *exts;
+    char                    *source_path;
+    bool                    do_compile;
+    current_line_getter     *get_current_line;
+    current_column_getter   *get_current_column;               
+    current_file_getter     *get_current_file;               
+} compiler_ctx;
 
-void                    compiler_init();
+void                    compiler_init(compiler_ctx*);
 void                    compiler_destroy();
 parser                  parse;
-preprocessor            preprocess;
-char                    *compile(ast_node_list *);
-ast_node_list           *parse_all(const char *);
-typedef bool            on_load_ext_t(int, char**, parser_list**, preprocessor_list**, compiler_list**);
-bool                    load_ext(int, char**, char *path);
+char                    *preprocess(compiler_ctx *, const char *);
+char                    *compile(compiler_ctx *,ast_node_list *);
+ast_node_list           *parse_all(compiler_ctx *,const char *);
+typedef bool            on_load_ext_t(compiler_ctx *,int, char**);
+bool                    load_ext(compiler_ctx *,int, char**, char *path);
+
+
 
 #endif

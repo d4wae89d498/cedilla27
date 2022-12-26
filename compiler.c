@@ -9,24 +9,23 @@ DEF_LIST(void*,     	ext_list, 			dlclose)
 /*
  *	Returns biggest possible ast_node or 0
  */
-ast_node *parse(const char *src)
+ast_node *parse(compiler_ctx *ctx, const char *src)
 {
 	ast_node	*o = 0;
 	ast_node	*try_o;
 	parser_list	*pl;
 	size_t		match_len = 0;
 
-	pl = parsers;
+	pl = parser_list_last(ctx->parsers);
 	while (pl)
 	{
-		try_o = pl->data(src);
+		try_o = pl->data(ctx, src);
 
 		if (try_o && (!o || (strlen(o->src) >= strlen(try_o->src))))
 		{
 			o = try_o;
 		}
-
-		pl = pl->next;
+		pl = pl->prev;
 	}
 	return o;	
 }
@@ -34,58 +33,55 @@ ast_node *parse(const char *src)
 /*
  *	Returns src by applying macros, will also apply macros in macros outputs
  */ 
-char *preprocess(const char *src)
+char *preprocess(compiler_ctx *ctx, const char *src)
 {
 	preprocessor_list 	*it;
-	const char			*r;
-	char				*try_new_src;
-	char				*new_src = 0;
-	size_t				depth = 0;
 
-	r = src;
-	depth = 0;
+	char 			*srci;
+	const char 			*replacement;
+	char				*output;
+
+	srci = strdup(src);
+	output = "";
 	print("Preprocessing...\n");
-	while (*src)
+	while (*srci)
 	{
-		new_src = 0;
-		it = preprocessors;
+		it = preprocessor_list_last(ctx->preprocessors);
 		while (it)
 		{
-			try_new_src = it->data(src);
-			if (try_new_src)
-				new_src = try_new_src;
-			it = it->next;
+			replacement = it->data(ctx, (const char **)&srci);
+			if (replacement)
+			{
+				asprintf(&srci, "%s%s", replacement, srci);
+				continue ;
+			}
+			it = it->prev;
 		}
-		if (new_src)
-		{
-			r = new_src;
-			src = new_src;
-		}
-		else 
-			src += 1;
+		asprintf(&output, "%s%c", output, *srci);
+		srci += 1;
 	}
-	return strdup(r);
+	return output;
 }
 
 /*
  * Compile all nodes
  */ 
-char *compile(ast_node_list *nodes)
+char *compile(compiler_ctx *ctx, ast_node_list *nodes)
 {
 	size_t		max_item;
 	char		*s;
 	str_list	*sl = 0;
 	while (nodes)
 	{
-		compiler_list	*cl = compilers;	
+		compiler_list	*cl = compiler_list_last(ctx->compilers);	
 		while (cl)
 		{
-			s = cl->data(nodes->data);	
+			s = cl->data(ctx, nodes->data);	
 			if (s)
 			{
 				return s;
 			}
-			cl = cl->next;
+			cl = cl->prev;
 		}
 
 		nodes = nodes->next;
@@ -96,24 +92,22 @@ char *compile(ast_node_list *nodes)
 /*
  * Returns an ast node list by parsing src. Returns 0 if something can't be parsed.
  */
-ast_node_list *parse_all(const char *src)
+ast_node_list *parse_all(compiler_ctx *ctx, const char *src)
 {
-	size_t			i = 0;	
 	ast_node_list	*o = 0;
 
-	i = 0;
-	while (src[i])
+	while (*src)
 	{
-		ast_node		*n = parse(src + i);
+		ast_node		*n = parse(ctx, src);
 		if (!n)
 		{
+			print ("Parse error.");
 			return 0;
 		}
 		ast_node_list_add(&o, n);
-		src += strlen(n->src);
-		i = 0;
+		src = 0;
 		continue ;
-		i += 1;
+		src += 1;
 	}
     return o;
 }
@@ -121,7 +115,7 @@ ast_node_list *parse_all(const char *src)
 /*
  * Try to load a compiler extension. Returns true on success, false on failure.
  */
-bool load_ext(int ac, char **av, char *path)
+bool load_ext(compiler_ctx* ctx, int ac, char **av, char *path)
 {
 	void	*handle = dlopen(path, RTLD_NOW);
 	if (!handle)
@@ -136,21 +130,34 @@ bool load_ext(int ac, char **av, char *path)
 		print ("missing register_ext function for ext : %s\n", path);
 		return false;
 	}
-	ext_list_add(&exts, handle);
-	return f(ac, av, &parsers, &preprocessors, &compilers);
+	ext_list_add(&(ctx->exts), handle);
+	bool r =  f(ctx, ac, av);
+	print ("(%p) \n", ctx->parsers->data);
+	return r;
 }
 
-void	compiler_init()
+static compiler_ctx *last_ctx = 0;
+
+void	compiler_init(compiler_ctx *ctx)
 {
-	parsers = 0;
-	preprocessors = 0;
-	compilers = 0;
-	exts = 0;
+	last_ctx = ctx;
+	*ctx = (compiler_ctx) {
+    	.parsers = 0,
+    	.preprocessors = 0,
+   		.compilers = 0,
+    	.exts = 0,
+    	.source_path = 0,
+    	.get_current_line = 0,
+    	.get_current_column = 0,               
+    	.get_current_file = 0
+	};
 }
 
 void	compiler_destroy()
 {
-	ext_list 	*el = exts;
+	return ; // todo : fix leaks
+	compiler_ctx *ctx = last_ctx;	
+	ext_list 	*el = ctx->exts;
 	while (el)
 	{
 		void (*f)() = dlsym(el->data, "on_unload_ext");
@@ -158,16 +165,16 @@ void	compiler_destroy()
 			f();
 		el = el->next;
 	}
-	if (parsers)
-		parser_list_free(parsers);
-	if (preprocessors)
-		preprocessor_list_free(preprocessors);
-	if (compilers)
-		compiler_list_free(compilers);
-	if (exts)
-		ext_list_free(exts);
-	parsers = 0;
-	preprocessors = 0;
-	compilers = 0;
-	exts = 0;
+	if (ctx->parsers)
+		parser_list_free(ctx->parsers);
+	if (ctx->preprocessors)
+		preprocessor_list_free(ctx->preprocessors);
+	if (ctx->compilers)
+		compiler_list_free(ctx->compilers);
+	if (ctx->exts)
+		ext_list_free(ctx->exts);
+	ctx->parsers = 0;
+	ctx->preprocessors = 0;
+	ctx->compilers = 0;
+	ctx->exts = 0;
 }

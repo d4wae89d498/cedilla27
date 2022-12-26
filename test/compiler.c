@@ -1,14 +1,14 @@
 #include "../compiler.h"
 #include "assert.h"
 
-ast_node    *parse_sep(const char *src)
+ast_node    *parse_sep(compiler_ctx *ctx, const char *src)
 {
     if (str_is(src, " "))
         return alloc(ast_node, .symbol="SPACE", .src=" ");
     return 0;
 }
 
-char    *compile_sep(ast_node *node)
+char    *compile_sep(compiler_ctx *ctx, ast_node *node)
 {
     if (str_is(node->symbol, "SPACE"))
         return " ";
@@ -18,9 +18,12 @@ char    *compile_sep(ast_node *node)
 
 int main()
 {
-    parser_list_add(&parsers, parse_sep);
-    compiler_list_add(&compilers, compile_sep);
+    compiler_ctx ctx;
+    compiler_init (&ctx);
 
-    char    *s = compile(parse_all(" "));
+    parser_list_add(&(ctx.parsers), parse_sep);
+    compiler_list_add(&(ctx.compilers), compile_sep);
+
+    char    *s = compile(&ctx, parse_all(&ctx, " "));
     assert(*s == ' ');
 }
