@@ -5,4 +5,5 @@
 *.out
 *.so
 compiler
+test
 .vscode
