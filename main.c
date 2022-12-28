@@ -48,7 +48,7 @@ int	main(int ac, char **av)
 	char *source = read_file(ctx.source_path);
 	if (!source)
 		return !!print("File error.\n");
-	char *esource = preprocess(&ctx, source);
+	char *esource = preprocess_all(&ctx, source);
 	free(source);
 	if (!esource)
 		return !!print("Preprocessing error.\n");
@@ -60,7 +60,7 @@ int	main(int ac, char **av)
 		{
 			return !!print("Parse error.\n");
 		}
-		char *out = compile(&ctx, nodes);	
+		char *out = compile_all(&ctx, nodes);	
 		ast_node_list_free(nodes);
 		if (out)
 		{

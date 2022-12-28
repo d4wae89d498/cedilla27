@@ -5,3 +5,4 @@ int main()
 	assert(A == 42);
 	#	define bb
 }
+

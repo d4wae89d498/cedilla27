@@ -22,7 +22,7 @@ int main()
 
     preprocessor_list_add(&(ctx.preprocessors), find_str);
 
-    char *test = preprocess(&ctx, "__HELLO__ WORLD!");
+    char *test = preprocess_all(&ctx, "__HELLO__ WORLD!");
 
     assert(test);
     assert(str_is(test, "hi! WORLD!"));

@@ -1,7 +1,6 @@
 #ifndef LIST_H
 # define LIST_H
 # include <stdlib.h>
-
 # define DEF_LIST_PROTO(TYPE, NAME)     \
                                         \
 	typedef struct s_ ## NAME			\
@@ -49,6 +48,7 @@ NAME    *NAME ## _add(NAME **l, TYPE data)\
     last = *l;							\
     while (last)						\
     {									\
+        print ("it");\
         if (!last->next)				\
             break ;                     \
         prev = last;                    \
@@ -58,9 +58,8 @@ NAME    *NAME ## _add(NAME **l, TYPE data)\
     {                                   \
         return *l = NAME ## _new(data);	\
     }                                   \
-                                        \
     last->next = NAME ## _new(data);    \
-    last->prev = prev;                  \
+    last->next->prev = last;            \
                                         \
     return last->next;                  \
                                         \

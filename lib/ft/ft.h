@@ -3,7 +3,7 @@
 # include <libc.h>
 # include <ctype.h>
 # include <dlfcn.h>
-# include "../list/list.h"
+
 # define alloc(TYPE, ...) ({					\
 	TYPE *o = malloc(sizeof(TYPE));				\
     if (!o)                                     \
@@ -21,8 +21,11 @@
 	fprintf(stderr, __VA_ARGS__))										
 # define ull unsigned long long 
 # define ll long long
-# define strisp(STR, p) (!strncmp(str, p, strlen(str) ? strlen(str) : 0));
-DEF_LIST_PROTO(char*, str_list)
+
+
+# include "../list/list.h"
+
+DEF_LIST_PROTO(char*, str_list);
 
 extern int errno;
 int     str_is(const char *str, const char *str2);

@@ -33,7 +33,7 @@ ast_node *parse(compiler_ctx *ctx, const char *src)
 /*
  *	Returns src by applying macros, will also apply macros in macros outputs
  */ 
-char *preprocess(compiler_ctx *ctx, const char *src)
+char *preprocess_all(compiler_ctx *ctx, const char *src)
 {
 	preprocessor_list 	*it;
 
@@ -66,7 +66,7 @@ char *preprocess(compiler_ctx *ctx, const char *src)
 /*
  * Compile all nodes
  */ 
-char *compile(compiler_ctx *ctx, ast_node_list *nodes)
+char *compile_all(compiler_ctx *ctx, ast_node_list *nodes)
 {
 	size_t		max_item;
 	char		*s;

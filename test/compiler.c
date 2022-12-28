@@ -24,6 +24,6 @@ int main()
     parser_list_add(&(ctx.parsers), parse_sep);
     compiler_list_add(&(ctx.compilers), compile_sep);
 
-    char    *s = compile(&ctx, parse_all(&ctx, " "));
+    char    *s = compile_all(&ctx, parse_all(&ctx, " "));
     assert(*s == ' ');
 }
