@@ -44,7 +44,7 @@ static char    *preprocess_line(compiler_ctx *ctx, const char **src)
     {
         current_line += 1;
         current_column = 1;
-        *src += 1;// TODO : detect if src changed within preprocess_all
+        *src += 1;// TODO : detect if src changed within preprocess_all + handle line escape
         return 0;
     }
     return 0;
@@ -52,6 +52,8 @@ static char    *preprocess_line(compiler_ctx *ctx, const char **src)
 
 static ast_node    *parse_column(compiler_ctx *ctx, const char *src)
 {
+    if (*src == '\n')
+        return 0;
     if (ctx->do_compile && !isspace(*src))
     {
         print("Error : unpexpected token : [%.5s]... in %s:%llu:%llu", (char*) src, current_file, current_line, current_column);
