@@ -135,7 +135,6 @@ bool load_ext(compiler_ctx* ctx, int ac, char **av, char *path)
 	}
 	ext_list_add(&(ctx->exts), handle);
 	bool r =  f(ctx, ac, av);
-	print ("(%p) \n", ctx->parsers->data);
 	return r;
 }
 

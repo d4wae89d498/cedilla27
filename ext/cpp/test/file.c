@@ -1,8 +1,9 @@
-#include "../../../compiler.h"
+#include <libc.h>
 #include <assert.h>
-#define A 42
+
 int main()
 {
-	assert(__LINE__ == 6);
-	print ("TEST OK\n");
+	assert(!strcmp(__FILE__, "test/file.c"));
+    printf ("OK\n");
+
 }

@@ -13,7 +13,9 @@ static char    *c_preprocess_cpp_file(compiler_ctx *ctx, const char **src)
     if (str_is_prefixed(*src, FILE_MACRO_TEXT))
     {
         *src += strlen(FILE_MACRO_TEXT);
-        return strdup(current_file);
+        char *o;
+        asprintf(&o, "\"%s\"", current_file);
+        return o;
     }
     return 0;
 }
@@ -176,6 +178,7 @@ bool    on_load_ext(
     parser_list_add(&(ctx->parsers), c_parse_cpp_line);
     parser_list_add(&(ctx->parsers), c_parse_cpp_column);
 
+    preprocessor_list_add(&(ctx->preprocessors), c_preprocess_cpp_file);
     preprocessor_list_add(&(ctx->preprocessors), c_preprocess_cpp_line);
     preprocessor_list_add(&(ctx->preprocessors), c_preprocess_cpp_define);
 
