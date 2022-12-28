@@ -41,7 +41,8 @@ int	main(int ac, char **av)
     str_list *ext_list = explode(exts, skip_space);
 	while (ext_list)
 	{
-		load_ext(&ctx, ac, av, ext_list->data);
+		if (!load_ext(&ctx, ac, av, ext_list->data))
+			print ("Fail to load ext %s\n", ext_list->data);
 		ext_list = ext_list->next;
 	}
 	str_list_free(ext_list);

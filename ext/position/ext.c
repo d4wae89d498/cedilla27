@@ -44,7 +44,7 @@ static char    *preprocess_line(compiler_ctx *ctx, const char **src)
     {
         current_line += 1;
         current_column = 1;
-        *src += 1;// TODO : detect if src changed within preprocess_all + handle line escape
+     //   *src += 1;// TODO : detect if src changed within preprocess_all
         return 0;
     }
     return 0;
@@ -59,7 +59,7 @@ static ast_node    *parse_column(compiler_ctx *ctx, const char *src)
         print("Error : unpexpected token : [%.5s]... in %s:%llu:%llu", (char*) src, current_file, current_line, current_column);
         return 0;
     }
-    current_column += 1;
+    current_column += *src == '\t' ? 4 : 1;
     return alloc(ast_node,
         .src = strdup((char[2]){*src, 0}),
         .symbol = "COLUMN",
