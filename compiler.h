@@ -21,6 +21,8 @@ typedef ull             current_line_getter     ();
 typedef ull             current_column_getter   ();
 typedef char            *current_file_getter    ();
 typedef void            current_column_setter   (ull);
+typedef char            *current_language_getter();
+typedef float           current_language_version_getter();
 
 DEF_LIST_PROTO(parser*,       parser_list)
 DEF_LIST_PROTO(preprocessor*, preprocessor_list)
@@ -34,9 +36,14 @@ typedef struct s_compiler_ctx {
     ext_list                *exts;
     char                    *source_path;
     bool                    do_compile;
+
     current_line_getter     *get_current_line;
     current_column_getter   *get_current_column;               
-    current_file_getter     *get_current_file;       
+    current_file_getter     *get_current_file;     
+    current_language_getter *get_current_language;     
+    current_language_version_getter 
+                            *get_current_language_version;     
+
     current_column_setter   *set_current_column;        
 } compiler_ctx;
 

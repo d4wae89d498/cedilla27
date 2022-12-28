@@ -34,6 +34,7 @@ clean:
 
 fclean: clean
 	make -C lib/ft 		fclean
+	make -C ext/position	fclean
 	make -C ext/cpp		fclean	
 	rm -rf $(NAME)
 

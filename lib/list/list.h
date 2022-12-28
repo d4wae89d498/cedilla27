@@ -48,7 +48,6 @@ NAME    *NAME ## _add(NAME **l, TYPE data)\
     last = *l;							\
     while (last)						\
     {									\
-        print ("it");\
         if (!last->next)				\
             break ;                     \
         prev = last;                    \

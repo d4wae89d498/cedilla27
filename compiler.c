@@ -154,7 +154,9 @@ void	compiler_init(compiler_ctx *ctx)
     	.get_current_line = 0,
     	.get_current_column = 0,               
     	.get_current_file = 0,
-		.set_current_column = 0
+		.set_current_column = 0,
+		.get_current_language = 0,
+		.get_current_language_version = 0
 	};
 }
 
