@@ -30,7 +30,7 @@ static ast_node    *parse_line(compiler_ctx *ctx, const char *src)
     {
         return alloc(ast_node, 
             .src = strdup("\n"),
-            .symbol = "SPACE",
+            .symbol = "NEW_LINE",
             .data = 0
         );
     }
@@ -40,10 +40,11 @@ static ast_node    *parse_line(compiler_ctx *ctx, const char *src)
 static char    *preprocess_line(compiler_ctx *ctx, const char **src)
 {
     ast_node    *n = parse(ctx, *src);
-    if (n && str_is(n->symbol, "SPACE"))
+    if (n && str_is(n->symbol, "NEW_LINE"))
     {
         current_line += 1;
         current_column = 1;
+        *src += 1;// TODO : detect if src changed within preprocess_all
         return 0;
     }
     return 0;
