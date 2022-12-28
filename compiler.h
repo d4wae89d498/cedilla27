@@ -41,14 +41,11 @@ typedef struct s_compiler_ctx {
 } compiler_ctx;
 
 void                    compiler_init(compiler_ctx*);
-void                    compiler_destroy();
+void                    compiler_destroy(compiler_ctx*);
 parser                  parse;
 char                    *preprocess_all(compiler_ctx *, const char *);
 char                    *compile_all(compiler_ctx *,ast_node_list *);
 ast_node_list           *parse_all(compiler_ctx *,const char *);
 typedef bool            on_load_ext_t(compiler_ctx *,int, char**);
 bool                    load_ext(compiler_ctx *,int, char**, char *path);
-
-
-
 #endif

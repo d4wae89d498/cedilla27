@@ -11,10 +11,10 @@ DEF_LIST(void*,     	ext_list, 			dlclose)
  */
 ast_node *parse(compiler_ctx *ctx, const char *src)
 {
-	ast_node	*o = 0;
-	ast_node	*try_o;
-	parser_list	*pl;
-	size_t		match_len = 0;
+	ast_node			*o = 0;
+	ast_node			*try_o;
+	parser_list			*pl;
+	size_t				match_len = 0;
 
 	pl = parser_list_last(ctx->parsers);
 	while (pl)
@@ -36,8 +36,7 @@ ast_node *parse(compiler_ctx *ctx, const char *src)
 char *preprocess_all(compiler_ctx *ctx, const char *src)
 {
 	preprocessor_list 	*it;
-
-	char 			*srci;
+	char 				*srci;
 	const char 			*replacement;
 	char				*output;
 
@@ -68,12 +67,14 @@ char *preprocess_all(compiler_ctx *ctx, const char *src)
  */ 
 char *compile_all(compiler_ctx *ctx, ast_node_list *nodes)
 {
-	size_t		max_item;
-	char		*s;
-	str_list	*sl = 0;
+	compiler_list		*cl;
+	size_t				max_item;
+	char				*s;
+	str_list			*sl = 0;
+
 	while (nodes)
 	{
-		compiler_list	*cl = compiler_list_last(ctx->compilers);	
+		cl = compiler_list_last(ctx->compilers);	
 		while (cl)
 		{
 			s = cl->data(ctx, nodes->data);	
@@ -83,7 +84,6 @@ char *compile_all(compiler_ctx *ctx, ast_node_list *nodes)
 			}
 			cl = cl->prev;
 		}
-
 		nodes = nodes->next;
 	}
 	return 0;
@@ -94,18 +94,19 @@ char *compile_all(compiler_ctx *ctx, ast_node_list *nodes)
  */
 ast_node_list *parse_all(compiler_ctx *ctx, const char *src)
 {
-	ast_node_list	*o = 0;
+	ast_node_list		*o = 0;
+	ast_node			*n;
 
 	while (*src)
 	{
-		ast_node		*n = parse(ctx, src);
+		n = parse(ctx, src);
 		if (!n)
 		{
 			print ("Parse error in file %s:%llu:%llu\n", ctx->get_current_file(ctx), ctx->get_current_line(ctx), ctx->get_current_column(ctx));
 			return 0;
 		}
 		ast_node_list_add(&o, n);
-		char *last_space = strchr(n->src, '\n');
+		char *last_space = strrchr(n->src, '\n');
 		if (last_space)
 			ctx->set_current_column(last_space - n->src);
 		else 
@@ -120,13 +121,16 @@ ast_node_list *parse_all(compiler_ctx *ctx, const char *src)
  */
 bool load_ext(compiler_ctx* ctx, int ac, char **av, char *path)
 {
-	void	*handle = dlopen(path, RTLD_NOW);
+	void				*handle;
+	on_load_ext_t 		*f;
+
+	handle = dlopen(path, RTLD_NOW);
 	if (!handle)
 	{
 		print ("ext not found : %s\n", path);
 		return false;
 	}
-	on_load_ext_t *f = dlsym(handle, "on_load_ext");
+	f = dlsym(handle, "on_load_ext");
 	if (!f)
 	{
 		dlclose(handle);
@@ -138,11 +142,9 @@ bool load_ext(compiler_ctx* ctx, int ac, char **av, char *path)
 	return r;
 }
 
-static compiler_ctx *last_ctx = 0;
 
 void	compiler_init(compiler_ctx *ctx)
 {
-	last_ctx = ctx;
 	*ctx = (compiler_ctx) {
     	.parsers = 0,
     	.preprocessors = 0,
@@ -156,11 +158,11 @@ void	compiler_init(compiler_ctx *ctx)
 	};
 }
 
-void	compiler_destroy()
+void	compiler_destroy(compiler_ctx *ctx)
 {
 	return ; // todo : fix leaks
-	compiler_ctx *ctx = last_ctx;	
-	ext_list 	*el = ctx->exts;
+	ext_list 		*el = ctx->exts;
+
 	while (el)
 	{
 		void (*f)() = dlsym(el->data, "on_unload_ext");
