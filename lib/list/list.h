@@ -13,7 +13,8 @@ NAME    *NAME ## _last(NAME *l);		\
 NAME    *NAME ## _new(TYPE data);		\
 NAME    *NAME ## _add(NAME **l, TYPE data);\
 void    NAME ## _del(NAME **l, NAME *k);\
-void    NAME ## _free(NAME *l);
+void    NAME ## _free(NAME *l);         \
+NAME    *NAME ## _clone(NAME    *, TYPE (*)(TYPE));		\
 
 # define DEF_LIST(TYPE, NAME, FREEF)	\
 										\
@@ -102,6 +103,20 @@ void    NAME ## _free(NAME *l)          \
         free(it);						\
         it = swp;						\
     }									\
-}										
+}										\
+                                        \
+NAME    * NAME ## _clone(NAME *l, TYPE (*clone)(TYPE))\
+{										\
+    NAME    *it;						\
+    NAME    *out = 0;					\
+										\
+    it = l;								\
+    while (it)							\
+    {									\
+        NAME ## _add(&out, clone ? clone(it->data) : it->data);\
+        it = it->next;					\
+    }									\
+    return out;                         \
+}                                       
 
 #endif

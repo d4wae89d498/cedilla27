@@ -1,8 +1,8 @@
 #ifndef CONFIG_H
 # define CONFIG_H
 
-# define DEFAULT_LANGUAGE           "C"
-# define DEFAULT_LANGUAGE_VERSION   99.0
+# define DEFAULT_LANGUAGE               "C"
+# define DEFAULT_LANGUAGE_VERSION       99.0
 
 # define MAX_PREPROCESSOR_TENTATIVES    512
 

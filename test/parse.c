@@ -8,7 +8,7 @@ ast_node    *parse_42(compiler_ctx *ctx, const char *src)
         return alloc(ast_node, 
             .src="42", 
             .symbol="43", 
-            .data=(void*)44
+            .ctx=clone_ctx(ctx)
         );
     }
     return 0;
@@ -21,7 +21,7 @@ ast_node    *parse_ab(compiler_ctx *ctx, const char *src)
         return alloc(ast_node, 
             .src="ab", 
             .symbol="AB", 
-            .data=(void*)47
+            .ctx=clone_ctx(ctx)
         );
     }
     return 0;
@@ -39,7 +39,6 @@ int main(void)
     test = parse(&ctx, "42");
     assert(test);
     assert(!strcmp(test->symbol, "43"));
-    assert(test->data == (void*) 44);
     assert(!strcmp(test->src, "42"));
 
     test = parse(&ctx, "042");
@@ -50,7 +49,6 @@ int main(void)
     assert(test);
     assert(!strcmp(test->src, "ab"));
     assert(!strcmp(test->symbol, "AB"));
-    assert(test->data = (void*)47);
 
     return 0;
 }

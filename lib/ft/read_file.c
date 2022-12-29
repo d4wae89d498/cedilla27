@@ -1,6 +1,6 @@
 #include "ft.h"
 
-char	*read_file(char *path)
+char	*read_file(const char *path)
 {
 	int     fd;
 	size_t  fsize;

@@ -8,7 +8,7 @@ ast_node    *parse_42(compiler_ctx *ctx, const char *src)
         return alloc(ast_node, 
             .src="42", 
             .symbol="43", 
-            .data=(void*)44
+            .ctx=clone_ctx(ctx)
         );
     }
     return 0;
@@ -21,7 +21,7 @@ ast_node    *parse_ab(compiler_ctx *ctx, const char *src)
         return alloc(ast_node, 
             .src="ab", 
             .symbol="AB", 
-            .data=(void*)47
+            .ctx=clone_ctx(ctx)
         );
     }
     return 0;

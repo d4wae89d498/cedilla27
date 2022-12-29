@@ -27,6 +27,10 @@ ast_node *parse(compiler_ctx *ctx, const char *src)
 		}
 		pl = pl->prev;
 	}
+	if (o)
+	{
+		o->ctx = clone_ctx(ctx);
+	}
 	return o;	
 }
 
@@ -41,6 +45,11 @@ char *preprocess_all(compiler_ctx *ctx, const char *src)
 	const char 			*replacement;
 	char				*output;
 
+	ctx->preprocessor_depth += 1;
+	if (ctx->preprocessor_depth >= MAX_PREPROCESSOR_DEPTH)
+	{
+		print ("ERROR : MAX_PREPROCESSOR_DEPTH EXCEEDED\n");
+	}
 	srci = strdup(src);
 	output = "";
 	print("Preprocessing...\n");
@@ -51,7 +60,7 @@ char *preprocess_all(compiler_ctx *ctx, const char *src)
 			if(tentatives++ >= MAX_PREPROCESSOR_TENTATIVES)
 			{
 				print ("WARNING : MAX_PREPROCESSOR_TENTATIVES reached in %s:%llu:%llu. Try to use no_expand: in your macros.\n", 
-						ctx->get_current_file(), ctx->get_current_line(), ctx->get_current_column());
+						ctx->file, ctx->line, ctx->column);
 				srci += 1;
 			}
 		it = preprocessor_list_last(ctx->preprocessors);
@@ -59,6 +68,7 @@ char *preprocess_all(compiler_ctx *ctx, const char *src)
 		{
 			// todo : check if srci changed, restart from 
 			srci_bkp = srci;
+			ctx->no_expand = false;
 			replacement = it->data(ctx, (const char **)&srci);
 			if (replacement)
 			{
@@ -67,8 +77,8 @@ char *preprocess_all(compiler_ctx *ctx, const char *src)
 					print ("ERROR: src ptr incrementation missing in a macro that add a replacement.\n");
 					exit (1);
 				}
-				if (str_is_prefixed(replacement, "no_expand:")) 
-					asprintf(&output, "%s%s", output, replacement + strlen("no_expand:"));
+				if (ctx->no_expand) 
+					asprintf(&output, "%s%s", output, replacement);
 				else 
 					asprintf(&srci, "%s%s", replacement, srci);
 				goto try_all_macros;	
@@ -80,6 +90,7 @@ char *preprocess_all(compiler_ctx *ctx, const char *src)
 		asprintf(&output, "%s%c", output, *srci);
 		srci += 1;
 	}
+	ctx->preprocessor_depth -= 1;
 	return output;
 }
 
@@ -123,7 +134,7 @@ ast_node_list *parse_all(compiler_ctx *ctx, const char *src)
 		n = parse(ctx, src);
 		if (!n)
 		{
-			print ("Parse error in file %s:%llu:%llu\n", ctx->get_current_file(ctx), ctx->get_current_line(ctx), ctx->get_current_column(ctx));
+			print ("Parse error in file %s:%llu:%llu\n", ctx->file, ctx->line, ctx->column);
 			return 0;
 		}
 		ast_node_list_add(&o, n);
@@ -160,64 +171,51 @@ bool load_ext(compiler_ctx* ctx, int ac, char **av, char *path)
 	return r;
 }
 
-static const char	*default_file_getter()
+bool 	default_is_new_line()
 {
-	return "(unknow_file)";
-}
-
-static ull			default_int_getter()
-{
-	return 0;
-}
-
-static const char	*default_language_getter()
-{
-	return DEFAULT_LANGUAGE;
-}
-
-static float		default_language_version_getter()
-{
-	return DEFAULT_LANGUAGE_VERSION;
-}
-
-static void			default_str_setter(const char *s)
-{
-	(void)s;
-}
-
-static void 		default_int_setter(ull i)
-{
-	(void)i;
-}
-
-static void			default_float_setter(float f)
-{
-	(void)f;
+	return false;
 }
 
 void	compiler_init(compiler_ctx *ctx)
 {
 	*ctx = (compiler_ctx) {
-    	.parsers = 0,
+		.do_compile = true,
+    	.exts = 0,
+		.parsers = 0,
     	.preprocessors = 0,
    		.compilers = 0,
-    	.exts = 0,
-    	.source_path = 0,
-
-    	.get_current_file = default_file_getter,
-		.get_current_line = default_int_getter,
-		.get_current_column = default_int_getter,
-		.get_current_language = default_language_getter,
-		.get_current_language_version = default_language_version_getter,
-
-    	.set_current_file = default_str_setter,
-		.set_current_line = default_int_setter,
-		.set_current_column = default_int_setter,
-		.set_current_language = default_str_setter,
-		.set_current_language_version = default_float_setter,
-
-		.is_new_line = 0
+		.on_parse = 0,
+		.is_new_line = default_is_new_line,
+		.file = strdup(DEFAULT_FILE_NAME),
+		.line = 1,
+		.column = 1,
+		.language = strdup(DEFAULT_LANGUAGE),
+		.language_version = DEFAULT_LANGUAGE_VERSION,
+		.preprocessor_depth = 0,
+		.compiler_depth = 0,
+		.no_expand = false
 	};
+}
+
+compiler_ctx            *clone_ctx(compiler_ctx *ctx)
+{
+    return alloc(compiler_ctx, 
+        .do_compile = ctx->do_compile,
+        .exts = 0,//ctx->exts,
+        .parsers = 0,//parser_list_clone(ctx->parsers, 0),
+		.preprocessors = 0,//preprocessor_list_clone(ctx->preprocessors, 0),
+		.compilers = 0,//compiler_list_clone(ctx->compilers, 0),
+		.on_parse = 0,
+		.is_new_line = 0,
+		.file = strdup(ctx->file),
+		.line = 1,
+		.column = 1,
+		.language = strdup(ctx->language),
+		.language_version = ctx->language_version,
+		.preprocessor_depth = ctx->preprocessor_depth,
+		.compiler_depth = ctx->compiler_depth,
+		.no_expand = false	
+    );
 }
 
 void	compiler_destroy(compiler_ctx *ctx)
