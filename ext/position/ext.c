@@ -7,7 +7,7 @@ static ull          current_column = 1;
 
 static bool         impl_is_new_line(const char *c)
 {
-    return str_is_prefixed(c, "\n");
+    return IS_NEW_LINE(c);
 }
 
 static const char   *impl_get_current_file()
@@ -43,10 +43,10 @@ static void         impl_set_current_column(ull column)
 
 static ast_node     *parse_line(compiler_ctx *ctx, const char *src)
 {
-    if (*src == '\n')
+    if (ctx->is_new_line(src))
     {
         return alloc(ast_node, 
-            .src = strdup("\n"),
+            .src = strdup(NEW_LINE),
             .symbol = "NEW_LINE",
             .data = 0
         );
@@ -69,14 +69,14 @@ static char         *preprocess_line(compiler_ctx *ctx, const char **src)
 
 static ast_node     *parse_column(compiler_ctx *ctx, const char *src)
 {
-    if (*src == '\n')
+    if (ctx->is_new_line(src))
         return 0;
-    if (ctx->do_compile && !isspace(*src))
+    if (ctx->do_compile && !IS_SPACE(src))
     {
         print("Error : unpexpected token : [%.5s]... in %s:%llu:%llu", (char*) src, current_file, current_line, current_column);
         return 0;
     }
-    current_column += *src == '\t' ? 4 : 1;
+    current_column += *src == IS_TAB(src) ? 4 : 1;
     return alloc(ast_node,
         .src = strdup((char[2]){*src, 0}),
         .symbol = "COLUMN",
