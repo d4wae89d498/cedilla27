@@ -37,6 +37,7 @@ char *preprocess_all(compiler_ctx *ctx, const char *src)
 {
 	preprocessor_list 	*it;
 	char 				*srci;
+	char				*srci_bkp;
 	const char 			*replacement;
 	char				*output;
 
@@ -45,15 +46,35 @@ char *preprocess_all(compiler_ctx *ctx, const char *src)
 	print("Preprocessing...\n");
 	while (*srci)
 	{
+		int tentatives = 0;
+		try_all_macros:
+			if(tentatives++ >= MAX_PREPROCESSOR_TENTATIVES)
+			{
+				print ("WARNING : MAX_PREPROCESSOR_TENTATIVES reached in %s:%llu:%llu. Try to use no_expand: in your macros.\n", 
+						ctx->get_current_file(), ctx->get_current_line(), ctx->get_current_column());
+				srci += 1;
+			}
 		it = preprocessor_list_last(ctx->preprocessors);
 		while (it)
 		{
+			// todo : check if srci changed, restart from 
+			srci_bkp = srci;
 			replacement = it->data(ctx, (const char **)&srci);
 			if (replacement)
 			{
-				asprintf(&srci, "%s%s", replacement, srci);
-				continue ;
+				if (str_is(srci_bkp, srci))
+				{
+					print ("ERROR: src ptr incrementation missing in a macro that add a replacement.\n");
+					exit (1);
+				}
+				if (str_is_prefixed(replacement, "no_expand:")) 
+					asprintf(&output, "%s%s", output, replacement + strlen("no_expand:"));
+				else 
+					asprintf(&srci, "%s%s", replacement, srci);
+				goto try_all_macros;	
 			}
+			else if (srci_bkp != srci)
+				goto try_all_macros;
 			it = it->prev;
 		}
 		asprintf(&output, "%s%c", output, *srci);
@@ -106,11 +127,8 @@ ast_node_list *parse_all(compiler_ctx *ctx, const char *src)
 			return 0;
 		}
 		ast_node_list_add(&o, n);
-		char *last_space = strrchr(n->src, '\n');
-		if (last_space)
-			ctx->set_current_column(last_space - n->src);
-		else 
-			ctx->set_current_column(ctx->get_current_column(ctx) + strlen(n->src));
+		if (ctx->on_parse)	
+			ctx->on_parse(ctx, n);
 		src += strlen(n->src);
 	}
     return o;
@@ -142,6 +160,40 @@ bool load_ext(compiler_ctx* ctx, int ac, char **av, char *path)
 	return r;
 }
 
+static const char	*default_file_getter()
+{
+	return "(unknow_file)";
+}
+
+static ull			default_int_getter()
+{
+	return 0;
+}
+
+static const char	*default_language_getter()
+{
+	return DEFAULT_LANGUAGE;
+}
+
+static float		default_language_version_getter()
+{
+	return DEFAULT_LANGUAGE_VERSION;
+}
+
+static void			default_str_setter(const char *s)
+{
+	(void)s;
+}
+
+static void 		default_int_setter(ull i)
+{
+	(void)i;
+}
+
+static void			default_float_setter(float f)
+{
+	(void)f;
+}
 
 void	compiler_init(compiler_ctx *ctx)
 {
@@ -151,12 +203,20 @@ void	compiler_init(compiler_ctx *ctx)
    		.compilers = 0,
     	.exts = 0,
     	.source_path = 0,
-    	.get_current_line = 0,
-    	.get_current_column = 0,               
-    	.get_current_file = 0,
-		.set_current_column = 0,
-		.get_current_language = 0,
-		.get_current_language_version = 0
+
+    	.get_current_file = default_file_getter,
+		.get_current_line = default_int_getter,
+		.get_current_column = default_int_getter,
+		.get_current_language = default_language_getter,
+		.get_current_language_version = default_language_version_getter,
+
+    	.set_current_file = default_str_setter,
+		.set_current_line = default_int_setter,
+		.set_current_column = default_int_setter,
+		.set_current_language = default_str_setter,
+		.set_current_language_version = default_float_setter,
+
+		.is_new_line = 0
 	};
 }
 

@@ -17,3 +17,17 @@ int str_is_prefixed(const char *str, const char *prefix)
         return prefix_len;
     return 0; 
 }
+
+
+const char *strrchr_cb(const char *str, bool (*is)(const char *src))
+{
+    ull len = strlen(str);
+
+    while (len)
+    {
+        len -= 1;
+        if (is(str + len))
+            return str + len;
+    }    
+    return 0;
+}

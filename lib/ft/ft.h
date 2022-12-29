@@ -35,4 +35,5 @@ str_list *explode(const char *src, int (*is_sep)(const char *));
 bool    is_var(char *str, char *prefix, char **compiler);
 bool    is_flag(char *str, char *prefix);
 int     skip_space(const char *s);
+const char    *strrchr_cb(const char *str, bool (*is)(const char *src));
 #endif

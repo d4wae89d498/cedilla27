@@ -1,30 +1,47 @@
 #include "../../compiler.h"
+#include "config.h"
 
-static char *current_file = "";
-static ull  current_line = 1;
-static ull  current_column = 1;
+static const char   *current_file = "";
+static ull          current_line = 1;
+static ull          current_column = 1;
 
-static char     *impl_get_current_file()
+static bool         impl_is_new_line(const char *c)
+{
+    return str_is_prefixed(c, "\n");
+}
+
+static const char   *impl_get_current_file()
 {
     return current_file; 
 }
 
-static ull  impl_get_current_line()
+static ull          impl_get_current_line()
 {
     return current_line; 
 }
 
-static ull     impl_get_current_column()
+static ull          impl_get_current_column()
 {
     return current_column; 
 }
 
-static void   impl_set_current_column(ull column)
+static void         impl_set_current_file(const char *path)
+{
+    current_file = path;
+}
+
+static void         impl_set_current_line(ull line)
+{
+    current_line = line;
+}
+
+static void         impl_set_current_column(ull column)
 {
     current_column = column; 
 }
 
-static ast_node    *parse_line(compiler_ctx *ctx, const char *src)
+
+static ast_node     *parse_line(compiler_ctx *ctx, const char *src)
 {
     if (*src == '\n')
     {
@@ -37,7 +54,7 @@ static ast_node    *parse_line(compiler_ctx *ctx, const char *src)
     return 0;
 }
 
-static char    *preprocess_line(compiler_ctx *ctx, const char **src)
+static char         *preprocess_line(compiler_ctx *ctx, const char **src)
 {
     ast_node    *n = parse(ctx, *src);
     if (n && str_is(n->symbol, "NEW_LINE"))
@@ -50,7 +67,7 @@ static char    *preprocess_line(compiler_ctx *ctx, const char **src)
     return 0;
 }
 
-static ast_node    *parse_column(compiler_ctx *ctx, const char *src)
+static ast_node     *parse_column(compiler_ctx *ctx, const char *src)
 {
     if (*src == '\n')
         return 0;
@@ -67,11 +84,29 @@ static ast_node    *parse_column(compiler_ctx *ctx, const char *src)
     );
 }
 
-bool    on_load_ext(    
+
+void                impl_on_parse(compiler_ctx *ctx, ast_node *n)
+{
+
+		if (ctx->is_new_line)
+		{
+			const char *last_space = strrchr_cb(n->src, ctx->is_new_line);
+			if (last_space)
+				ctx->set_current_column(last_space - n->src);
+			else 
+				ctx->set_current_column(ctx->get_current_column(ctx) + strlen(n->src));
+		}
+}
+
+bool                on_load_ext(    
         compiler_ctx *ctx,
         int ac, 
         char** av)
 {
+
+    ctx->is_new_line = impl_is_new_line;
+    ctx->on_parse = impl_on_parse;
+
     current_file = ctx->source_path;
 
     ctx->get_current_file   = impl_get_current_file;
@@ -79,7 +114,9 @@ bool    on_load_ext(
     ctx->get_current_column = impl_get_current_column;
     
     ctx->set_current_column = impl_set_current_column;
-    
+    ctx->set_current_line = impl_set_current_line;
+    ctx->set_current_file = impl_set_current_file;
+
     parser_list_add(&(ctx->parsers), parse_line);
     parser_list_add(&(ctx->parsers), parse_column);
 
