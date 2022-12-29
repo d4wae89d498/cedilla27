@@ -6,7 +6,7 @@
 
 static char    *c_preprocess_cpp_file(compiler_ctx *ctx, const char **src)
 {
-    if (ctx->get_current_language && !str_is(ctx->get_current_language(), "C"))
+    if (!str_is(ctx->get_current_language(), "C"))
         return 0;
     if (str_is_prefixed(*src, FILE_MACRO_TEXT))
     {
@@ -20,7 +20,7 @@ static char    *c_preprocess_cpp_file(compiler_ctx *ctx, const char **src)
 
 static char    *c_preprocess_cpp_line(compiler_ctx *ctx, const char **src)
 {
-    if (ctx->get_current_language && !str_is(ctx->get_current_language(), "C"))
+    if (!str_is(ctx->get_current_language(), "C"))
         return 0;
     if (str_is_prefixed(*src, LINE_MACRO_TEXT))
     {   
@@ -34,7 +34,7 @@ static char    *c_preprocess_cpp_line(compiler_ctx *ctx, const char **src)
 
 static char    *c_preprocess_cpp_column(compiler_ctx *ctx, const char **src)
 {
-    if (ctx->get_current_language && !str_is(ctx->get_current_language(), "C"))
+    if (!str_is(ctx->get_current_language(), "C"))
         return 0;
     if (str_is_prefixed(*src, COLUMN_MACRO_TEXT))
     {   
@@ -77,10 +77,14 @@ static char     *c_preprocess_cpp_define(compiler_ctx *ctx, const char **src)
         if (str_is_prefixed(*src + i, "include"))
         {
             print ("include at [%llu:%llu]\n", ctx->get_current_line(), i);
+            *src += i + strlen("include");
+            return strdup("no_expand:#include");
         }
         else if (str_is_prefixed(*src + i, "define"))
         {
             print ("define at [%llu:%llu]\n", ctx->get_current_line(), i);
+            *src += i + strlen("define");
+            return strdup("no_expand:#define");
         }
         else 
         {
