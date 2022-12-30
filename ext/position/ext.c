@@ -45,7 +45,7 @@ static ast_node     *parse_column(compiler_ctx *ctx, const char *src)
 }
 
 
-void                impl_on_parse(compiler_ctx *ctx, ast_node *n)
+void                impl_parse_node_position(compiler_ctx *ctx, ast_node *n)
 {
 
 		if (ctx->is_new_line)
@@ -70,7 +70,7 @@ bool                on_load_ext(
 {
 
     ctx->is_new_line = impl_is_new_line;
-    ctx->on_parse = impl_on_parse;
+    ctx->parse_node_position = impl_parse_node_position;
     
     parser_list_add(&(ctx->parsers), parse_line);
     parser_list_add(&(ctx->parsers), parse_column);
@@ -79,4 +79,9 @@ bool                on_load_ext(
 
     print ("Position ext loaded!\n");
     return true;
+}
+
+void            on_unload_ext(compiler_ctx *ctx)
+{
+    return;
 }

@@ -104,6 +104,11 @@ char *compile_all(compiler_ctx *ctx, ast_node_list *nodes)
 	char				*s;
 	str_list			*sl = 0;
 
+	ctx->compiler_depth += 1;
+	if (ctx->compiler_depth >= MAX_COMPILER_DEPTH)
+	{
+		print ("ERROR : MAX_COMPILER_DEPTH EXCEEDED\n");
+	}	
 	while (nodes)
 	{
 		cl = compiler_list_last(ctx->compilers);	
@@ -118,6 +123,7 @@ char *compile_all(compiler_ctx *ctx, ast_node_list *nodes)
 		}
 		nodes = nodes->next;
 	}
+	ctx->compiler_depth -= 1;
 	return 0;
 }
 
@@ -138,8 +144,8 @@ ast_node_list *parse_all(compiler_ctx *ctx, const char *src)
 			return 0;
 		}
 		ast_node_list_add(&o, n);
-		if (ctx->on_parse)	
-			ctx->on_parse(ctx, n);
+		if (ctx->parse_node_position)	
+			ctx->parse_node_position(ctx, n);
 		src += strlen(n->src);
 	}
     return o;
@@ -184,7 +190,7 @@ void	compiler_init(compiler_ctx *ctx)
 		.parsers = 0,
     	.preprocessors = 0,
    		.compilers = 0,
-		.on_parse = 0,
+		.parse_node_position = 0,
 		.is_new_line = default_is_new_line,
 		.file = strdup(DEFAULT_FILE_NAME),
 		.line = 1,
@@ -205,7 +211,7 @@ compiler_ctx            *clone_ctx(compiler_ctx *ctx)
         .parsers = 0,//parser_list_clone(ctx->parsers, 0),
 		.preprocessors = 0,//preprocessor_list_clone(ctx->preprocessors, 0),
 		.compilers = 0,//compiler_list_clone(ctx->compilers, 0),
-		.on_parse = 0,
+		.parse_node_position = 0,
 		.is_new_line = 0,
 		.file = strdup(ctx->file),
 		.line = 1,
@@ -220,14 +226,14 @@ compiler_ctx            *clone_ctx(compiler_ctx *ctx)
 
 void	compiler_destroy(compiler_ctx *ctx)
 {
-	return ; // todo : fix leaks
+	return ;
 	ext_list 		*el = ctx->exts;
 
 	while (el)
 	{
-		void (*f)() = dlsym(el->data, "on_unload_ext");
+		void (*f)(compiler_ctx*) = dlsym(el->data, "on_unload_ext");
 		if (f)
-			f();
+			f(ctx);
 		el = el->next;
 	}
 	if (ctx->parsers)

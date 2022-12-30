@@ -29,7 +29,7 @@ typedef struct s_compiler_ctx {
     parser_list                     *parsers;
     preprocessor_list               *preprocessors;
     compiler_list                   *compilers;
-    void                            (*on_parse)(compiler_ctx *, ast_node *n);
+    void                            (*parse_node_position)(compiler_ctx *, ast_node *n);
     bool                            (*is_new_line)(const char *); 
     const char                      *file; 
     ull                             line;

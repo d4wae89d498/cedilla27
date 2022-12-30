@@ -8,7 +8,6 @@ int	main(int ac, char **av)
 	bool			do_compile = true;
 
 	compiler_init(&ctx);
-//atexit(compiler_destroy);
     if (ac < 3)
     {
         print("Usage: %s  [-E] --EXTS=\"...\" <source_file>\n", av[0]);
@@ -77,5 +76,6 @@ int	main(int ac, char **av)
 		printf("%s\n", esource);
 		free(esource);
 	}
+	compiler_destroy(&ctx);
 	return 0;
 }
