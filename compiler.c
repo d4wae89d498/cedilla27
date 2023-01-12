@@ -1,35 +1,53 @@
 #include "compiler.h"
 
-DEF_LIST(ast_node*,     ast_node_list,		free)
+void ext_close(ext e)
+{
+	dlclose(e.handle);
+}
+
+void object_free(object o)
+{
+	o.destroy(o.data);
+}
+
+void ast_node_free(ast_node *o)
+{
+	free(o->src);
+	object_list_free(o->data);
+}
+
+DEF_LIST(object,        object_list,        object_free)
+DEF_LIST(ast_node*,     ast_node_list,	    ast_node_free)
 DEF_LIST(parser*,       parser_list, 		0)
 DEF_LIST(preprocessor*, preprocessor_list, 	0)
 DEF_LIST(compiler*,     compiler_list, 		0)
-DEF_LIST(void*,     	ext_list, 			dlclose)
+DEF_LIST(ext,     		ext_list, 			ext_close)
+
+
 
 /*
  *	Returns biggest possible ast_node or 0
  */
-ast_node *parse(compiler_ctx *ctx, const char *src)
+ast_node *parse(const compiler_ctx *ctx, const char *src)
 {
 	ast_node			*o = 0;
-	ast_node			*try_o;
+	ast_node			*try_o = 0;
 	parser_list			*pl;
 	size_t				match_len = 0;
 
 	pl = parser_list_last(ctx->parsers);
+
 	while (pl)
 	{
-		try_o = pl->data(ctx, src);
-
-		if (try_o && (!o || (strlen(o->src) >= strlen(try_o->src))))
+	
+		if (pl->data)		
+			try_o = pl->data(ctx, src);
+		printf("%p %p\n", o->symbol, o->src);
+		if (false && try_o && (!o->symbol || (strlen(o->src) >= strlen(try_o->src))))
 		{
 			o = try_o;
 		}
 		pl = pl->prev;
-	}
-	if (o)
-	{
-		o->ctx = clone_ctx(ctx);
 	}
 	return o;	
 }
@@ -138,14 +156,14 @@ ast_node_list *parse_all(compiler_ctx *ctx, const char *src)
 	while (*src)
 	{
 		n = parse(ctx, src);
-		if (!n)
+		if (!n->symbol)
 		{
 			print ("Parse error in file %s:%llu:%llu\n", ctx->file, ctx->line, ctx->column);
 			return 0;
 		}
 		ast_node_list_add(&o, n);
-		if (ctx->parse_node_position)	
-			ctx->parse_node_position(ctx, n);
+		if (ctx->on_add_ast_node)	
+			ctx->on_add_ast_node(ctx, n);
 		src += strlen(n->src);
 	}
     return o;
@@ -172,13 +190,13 @@ bool load_ext(compiler_ctx* ctx, int ac, char **av, char *path)
 		print ("missing register_ext function for ext : %s\n", path);
 		return false;
 	}
-	ext_list_add(&(ctx->exts), handle);
-	bool r =  f(ctx, ac, av);
-	return r;
-}
-
-bool 	default_is_new_line()
-{
+	ext r =  f(ctx, ac, av);
+	if (r.name)
+	{
+		r.handle = handle;
+		ext_list_add(&(ctx->exts), r);
+		return true;
+	}
 	return false;
 }
 
@@ -190,8 +208,7 @@ void	compiler_init(compiler_ctx *ctx)
 		.parsers = 0,
     	.preprocessors = 0,
    		.compilers = 0,
-		.parse_node_position = 0,
-		.is_new_line = default_is_new_line,
+		.on_add_ast_node = 0,
 		.file = strdup(DEFAULT_FILE_NAME),
 		.line = 1,
 		.column = 1,
@@ -203,26 +220,6 @@ void	compiler_init(compiler_ctx *ctx)
 	};
 }
 
-compiler_ctx            *clone_ctx(compiler_ctx *ctx)
-{
-    return alloc(compiler_ctx, 
-        .do_compile = ctx->do_compile,
-        .exts = 0,//ctx->exts,
-        .parsers = 0,//parser_list_clone(ctx->parsers, 0),
-		.preprocessors = 0,//preprocessor_list_clone(ctx->preprocessors, 0),
-		.compilers = 0,//compiler_list_clone(ctx->compilers, 0),
-		.parse_node_position = 0,
-		.is_new_line = 0,
-		.file = strdup(ctx->file),
-		.line = 1,
-		.column = 1,
-		.language = strdup(ctx->language),
-		.language_version = ctx->language_version,
-		.preprocessor_depth = ctx->preprocessor_depth,
-		.compiler_depth = ctx->compiler_depth,
-		.no_expand = false	
-    );
-}
 
 void	compiler_destroy(compiler_ctx *ctx)
 {
@@ -231,7 +228,7 @@ void	compiler_destroy(compiler_ctx *ctx)
 
 	while (el)
 	{
-		void (*f)(compiler_ctx*) = dlsym(el->data, "on_unload_ext");
+		void (*f)(compiler_ctx*) = dlsym(el->data.handle, "on_unload_ext");
 		if (f)
 			f(ctx);
 		el = el->next;

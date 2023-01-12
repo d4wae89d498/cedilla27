@@ -1,27 +1,27 @@
 #include "../compiler.h"
 #include "assert.h"
 
-ast_node    *parse_42(compiler_ctx *ctx, const char *src)
+ast_node    *parse_42(const compiler_ctx *ctx, const char *src)
 {
     if (!strncmp(src, "42", 2))
     {
         return alloc(ast_node, 
             .src="42", 
             .symbol="43", 
-            .ctx=clone_ctx(ctx)
+            .data=0
         );
     }
     return 0;
 }
 
-ast_node    *parse_ab(compiler_ctx *ctx, const char *src)
+ast_node    *parse_ab(const compiler_ctx *ctx, const char *src)
 {
     if (!strncmp(src, "ab", 2))
     {
         return alloc(ast_node, 
             .src="ab", 
             .symbol="AB", 
-            .ctx=clone_ctx(ctx)
+            .data=0
         );
     }
     return 0;
