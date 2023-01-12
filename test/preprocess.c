@@ -9,8 +9,8 @@ char    *find_str(compiler_ctx *ctx, const char **str)
     if ((p = str_is_prefixed(*str, "__HELLO__")))
     {
         *str += strlen("__HELLO__");
-        asprintf(&s, "%s%s", "hi!", *str + p);
-        return s;
+      //  asprintf(&s, "%s%s", "hi!", *str + p);
+        return strdup("hi!");
     }
     return 0;
 }
@@ -26,4 +26,5 @@ int main()
 
     assert(test);
     assert(str_is(test, "hi! WORLD!"));
+    printf ("OK\n");
 }

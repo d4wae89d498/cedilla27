@@ -3,7 +3,7 @@ NAME=ext.so
 all: $(NAME)
 
 $(NAME): ext.c ../../compiler.h ../../compiler.c
-	cc -g -fsanitize=address -shared -fPIC ext.c ../../compiler.o ../../lib/ft/libft.a -o ext.so
+	cc -fsanitize=address -shared -fPIC ext.c ../../compiler.o ../../lib/ft/libft.a -o ext.so
 
 clean:
 

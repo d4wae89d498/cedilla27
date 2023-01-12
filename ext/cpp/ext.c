@@ -109,16 +109,15 @@ static char     *c_preprocess_cpp_define(compiler_ctx *ctx, const char **src)
 }
 
 
-ext    on_load_ext(    
+bool    on_load_ext(    
         compiler_ctx *ctx,
         int ac, 
         char** av)
 {
-    // assert std-position loaded
     preprocessor_list_add(&(ctx->preprocessors), c_preprocess_cpp_file);
     preprocessor_list_add(&(ctx->preprocessors), c_preprocess_cpp_line);
     preprocessor_list_add(&(ctx->preprocessors), c_preprocess_cpp_column);
     preprocessor_list_add(&(ctx->preprocessors), c_preprocess_cpp_define);
     print ("CPP ext loaded!\n");
-    return (ext) { .name="std-cedilla", .version = 0.1 } ;
+    return true;
 }

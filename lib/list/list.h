@@ -79,7 +79,7 @@ void   NAME ## _del(NAME **l, NAME *k)  \
         if (it == k)					\
         {								\
             if (FREEF)		            \
-                ((void(*)(TYPE))FREEF)(it->data);\
+                ((void(*)(void*))FREEF)((void*)(unsigned long long)it->data);\
             free(it);					\
             *prev = swp;				\
         }								\
@@ -99,7 +99,7 @@ void    NAME ## _free(NAME *l)          \
     {									\
         swp = it->next;					\
         if (FREEF)			            \
-                ((void(*)(TYPE))FREEF)(it->data);\
+                ((void(*)(void*))FREEF)((void*)(unsigned long long)it->data);\
         free(it);						\
         it = swp;						\
     }									\
